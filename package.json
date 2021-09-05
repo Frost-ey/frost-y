@@ -1,0 +1,11 @@
+{
+  "name": "frost-y",
+  "version": "1.0.0",
+  "description": "Got bored so decided to make a discord bot. its just a proto type i guess...",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Flame#5340",
+  "license": "ISC"
+}
