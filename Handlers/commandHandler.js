@@ -11,6 +11,5 @@ module.exports = (client) => {
         client.commands.set(command.data.name, command);
     })
 
-    client.commandData.set('CommandData', commands);
-    console.log(client.commandData.get('CommandData'));
+    client.commands.set('Command Data', commands);
 }
