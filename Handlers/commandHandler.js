@@ -1,14 +1,17 @@
 const fs = require('fs');
 
 module.exports = (client) => {
-    const commandFiles = fs.readdirSync('./Commands').filter( file => file.endsWith('.js'));
+    const cmdFilesDir = fs.readdirSync('./Commands', { withFileTypes: true }).filter( dir => dir.isDirectory()).map(dir => dir.name);
     const commands = [];
 
-    commandFiles.forEach( files => {
-
-        const command = require(`../Commands/${files}`);
-        commands.push(command.data.toJSON());
-        client.commands.set(command.data.name, command);
+    cmdFilesDir.forEach( commandDir => {
+        const commandFiles = fs.readdirSync(`./Commands/${commandDir}`).filter( file => file.endsWith('.js'));
+        
+        commandFiles.forEach( files => {
+            const command = require(`../Commands/${commandDir}/${files}`);
+            commands.push(command.data.toJSON());
+            client.commands.set(command.data.name, command);
+        })
     })
 
     client.commands.set('Command Data', commands);

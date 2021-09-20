@@ -4,8 +4,7 @@ const { Routes } = require('discord-api-types/v9');
 module.exports = {
     name: 'ready',
     once: true,
-    execute(client) {
-    console.log(`${client.user.tag} is now online :)`);
+    async execute(client) {
 
     const Client_ID = client.user.id;
     const Test_Guild_ID = process.env.Test_Guild;
@@ -32,6 +31,9 @@ module.exports = {
             console.log(err)
         }
     })();
+
+    console.log(`${client.user.tag} is now online :)`);
+
     }
     
 
