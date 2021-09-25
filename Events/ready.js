@@ -15,14 +15,14 @@ module.exports = {
             if(Test_Guild_ID) {
                 await rest.put(
                     Routes.applicationGuildCommands(Client_ID, Test_Guild_ID), {
-                        body: client.commands.get('Command Data')
+                        body: client.cmdData
                     },
                 );
                 console.log(`All the commands have been loaded in test mode for ${client.user.tag}`);
             } else {
                 await rest.put(
                     Routes.applicationCommands(Client_ID), {
-                        body: client.commands.get('Command Data')
+                        body: client.cmdData
                     },
                 );
                 console.log(`All the commands have been loaded globally and ready to use for ${client.user.tag}`)

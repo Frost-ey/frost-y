@@ -14,5 +14,5 @@ module.exports = (client) => {
         })
     })
 
-    client.commands.set('Command Data', commands);
+    client.cmdData = commands;
 }
