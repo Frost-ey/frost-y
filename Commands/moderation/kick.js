@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
-const { User } = require('discord.js');
 
 const kickMode = {
     normal: 'Normal Kick mode. Kicks the mentioned user from the server.',
@@ -47,131 +46,129 @@ function command() {
 module.exports = {
     data: command(),
         async execute(interaction) {
-
             const mode = interaction.options.getSubcommand();
-            const reason = interaction.options.getString("reason");
+            const reason = interaction.options.getString("reason") || "No reason Provided";
             const client = interaction.client;
-
+        
             function kick(member) {
-
-                if(member === null){
-                    let error = 'Cant find the mentioned member. Double check that the member you want to kick is in the server.';
-                    return { kicked:false, error}
+                if(member === null || member === undefined) {
+                    return "User not available in the server";
                 }
-
-                if(member.user.id === client.user.id){
-                    let error = `[Error 101](<https://www.youtube.com/watch?v=dQw4w9WgXcQ>), Countered a fatal error. Check the link for the whole error log -.-`;
-                    return { kicked:false, error}
+        
+                if(member.user.id === client.user.id) {
+                    return `[Error 101!](<https://www.youtube.com/watch?v=dQw4w9WgXcQ>). ${client.user} encountered a fatal error. Check the link for the full log.`;
                 }
-
+        
                 const authorRole = interaction.member.roles.highest.position;
-                const memberRole = member.roles.highest.position;
+                const memeberRole = member.roles.highest.position;
                 const botRole = interaction.guild.me.roles.highest.position;
-
-                if(memberRole >= authorRole) {
-                    let error = `Can't kick ${member.user}. Make sure that your role is higher than that of the member you want to kick.`;
-                    return { kicked:false, error}
+        
+                if(memeberRole >= authorRole || memeberRole >= botRole) {
+                    return `${member.user.tag} has role higher inorder than you or me.`;
                 }
-
-                if(memberRole >= botRole) {
-                    let error = `Can't Kick ${member.user}. Make sure that my role is higher in order than the member you want to kick.`;
-                    return { kicked:false, error}
+        
+                if(!member.kickable) {
+                    return `Cant kick ${member.user.tag}`;
                 }
-            
-                if(!member.kickable){
-                    let error = `Cant kick ${member.user}`;
-                    return { kicked:false, error}
-                }
-            
-                return member.kick(reason).then( () => {
-                    
-                    return true;
-                }).catch( err => {
-                    interaction.reply({content: "Countered an error while executing the command. Please try again", ephemeral: true});
-                    console.log(err);
-                    return;
-                })
+        
+                return member.kick(reason);
             }
-            
-            if(mode === "normal") {
+        
+            if( mode == "normal") {
                 const member = interaction.options.getMember("member");
-
+                
                 const kickInfo = kick(member);
-
-                if(typeof kickInfo.kicked !== 'boolean') {
-                    kickInfo.then( result => {
-
-                        if(result === true) {
-                            
-                            const embed = new MessageEmbed()
-                                .setDescription(`${member.user?.tag ?? member.tag} has been succesfully kicked from the server \n > **Issued by:** ${interaction.user.tag} \n > **Reason:** ${reason || "No reason specified"}`)
-                                .setColor('NAVY')
+        
+                if(typeof kickInfo !== 'string') {
+                    kickInfo.then( () => {
+        
+                        const embed = new MessageEmbed()
+                                .setTitle(`${member.user?.tag ?? member.tag} has been kicked from the server`)
+                                .setDescription(`>>> **Issued by:** ${interaction.user}\n**Reason:**${reason}`)
+                                .setColor('BLUE')
                                 .setTimestamp();
-
-                            interaction.reply({embeds: [embed]})
-                            setTimeout(() => { interaction.deleteReply() }, 10*1000);
-                        }
+        
+                        interaction.reply({embeds: [embed], ephemeral: true});
+                    }).catch( err => {
+                        interaction.reply({content: "There was a error executing that command. Try again", ephemeral: true});
+                        console.log(err);
                     })
-                } else if(kickInfo.kicked === false)
-                    interaction.reply({content: kickInfo.error, ephemeral: true});
-                else
-                    return;
-
-            } else if( mode === 'multi') {
-                const members = interaction.options.getString('member');
-
+                } else if(typeof kickInfo === 'string') {
+                    interaction.reply({content: kickInfo, ephemeral: true});
+                }
+            } 
+            
+            //Multi kick mode codee's
+            else if ( mode == "multi") {
+        
+                const members = interaction.options.getString("member");
+        
                 const membersID = [...members.matchAll(/@!?(\d+)>|(\d{18})/g)];
 
-                let succesfullKicks = 0;
+
+                let successfullKicks = 0;
                 let unsuccessfullKicks = [];
-                let userID;
+        
+                membersID.forEach( async (id, index) => {
+                    const member = await interaction.guild.members.fetch(id[1] || id[0]).catch( err => { if(!err.toString().includes("Unknown Member")) console.log(err) })
+                    if(member === undefined) { 
+                        unsuccessfullKicks.push(`ID: ${id[1] || id[0]}\nReason: Member not available in the server\n`);
+                        reply(index);
+                        return;
+                    }
 
-                membersID.forEach( (id, index) => {
-                    if( id[1] === undefined)
-                        userID = id[0];
-                    else
-                        userID = id[1];
-
-                    interaction.guild.members.fetch(userID).then( async member => {
-
+                    if(member.user.id === client.user.id) {
+                        unsuccessfullKicks.push(`User tag: ${client.user.tag}\n Reason: Can't Kick myslef. ;-;`)
+                        reply(index);
+                        return;
+                    }
+                    
                     const kickInfo = kick(member);
-                    let result;
 
-                    if(typeof kickInfo !== 'boolean')
-                        result = await kickInfo;
-                    else
-                        result = kickInfo.kicked;
-
-                    if(result)
-                        succesfullKicks += 1;
-                    else
-                        unsuccessfullKicks.push(member?.user.tag);
-
-                    if( index+1 >= membersID.length)
-                        reply();
-
-                    }).catch( err => {
-                        let error = err.toString().substr(17);
-                        unsuccessfullKicks.push(`${error}(ID provided: ${id})`);
-                        console.log(err);
-                        console.log(error)
-                    })
+                    if(typeof kickInfo !== 'string') {
+                        kickInfo.then( () => {
+                            successfullKicks += 1;
+                            reply(index);
+                        }).catch( err => {
+                            unsuccessfullKicks.push(`User tag: ${member.user?.tag ?? member.tag}\nReason: Internal Bot error\n`);
+                            console.log(err);
+                        })
+                    } else if(typeof kickInfo === 'string') {
+                        unsuccessfullKicks.push(`User tag: ${member.user.tag}\nReason: ${kickInfo}\n`);
+                        reply(index);
+                    }
 
                 })
 
-               function reply() {
-                if(succesfullKicks >= 1) {
-                    const embed = new MessageEmbed()
-                            .setDescription(`Succesfully kicked multiple members: \n > **Successfull kicks:** ${succesfullKicks} \n > **Unsuccessfull kicks:** ${unsuccessfullKicks.length} \n \t**__Unsuccesfull kick list__** \`\`\`${unsuccessfullKicks.join('\t') || "None"} \`\`\` `)
-                            .setColor('AQUA')
-                            .setTimestamp();
+                function reply(index) {
+                    if(index+1 !== membersID.length) return;
 
-                    interaction.reply({embeds: [embed], ephemeral: true})
-                    } else if(unsuccessfullKicks.length >= 1) {
-                        // will add more code in the future to send a embed informing the user about unsuccessfull kicks.
+                    if(successfullKicks >= 1) {
+                        const embed = new MessageEmbed()
+                                .setTitle(`Multiple Member's Kicked from the server`)
+                                .setDescription(`> **Issued By:** ${interaction.user}\n > **Reason:** ${reason}\n> **Successfull Kicks:** ${successfullKicks}\n> **Unsuccessfull Kicks:** ${unsuccessfullKicks.length}\n \n**Unsuccessfull kicks list:** (User ID) \`\`\`${unsuccessfullKicks.join('\n') || "NONE"}\`\`\` `)
+                                .setColor('BLURPLE')
+                                .setTimestamp();
+                            
+                        interaction.reply({embeds: [embed], ephemeral: true});
+                    } else if(unsuccessfullKicks.length >= 1 ) {
+                        const embed = new MessageEmbed()
+                                .setTitle(`No member's were kicked`)
+                                .setDescription(`> **Issued By: ${interaction.user}\n> **Unsuccessfull Kicks:** ${unsuccessfullKicks.length}\n \n**Unsuccessfull kick Member's list** \n\`\`\`${unsuccessfullKicks.join('\n')}\`\`\` `)
+                                .setColor('BLUE')
+                                .setTimestamp();
+
+                        interaction.reply({embeds: [embed], ephemeral:true})
+                    } else {
+                        interaction.reply({content: "Countered a internal error while executing the command. If the problem persist's try contacting Flame#5340", ephemeral: true})
                     }
-               }
+
+                }
+            } 
+
+            //Network kick mode
+            else if(mode === "network") {
+                
             }
-            
         }
 }
