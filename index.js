@@ -1,9 +1,7 @@
 require('dotenv').config();
 const { Client, Intents, Collection } = require('discord.js');
-// const { MongoClient } = require('mongodb');
-//Will add a database later on
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 client.commands = new Collection();
 
 [ 'commandHandler', 'eventHandler' ].forEach( handlers => { const handler = require(`./Handlers/${handlers}`)(client) })
