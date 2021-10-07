@@ -1,26 +1,21 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageCollector } = require('discord.js');
+const { SlashCommandBuilder } = require("@discordjs/builders");
+const axios = require('axios').default;
+const test = require(`../../struct/Utils/imageScanner`)
 
 module.exports = {
     data: new SlashCommandBuilder()
             .setName('test')
-            .setDescription("Test of the cmd"),
-            async execute(interaction) {
+            .setDescription("pleach no test"),
+        async execute(interaction) {
+            const collector = interaction.channel.createMessageCollector();
 
-                const client = interaction.client;
-                interaction.reply({content: "TEST", ephemeral: true})
-                const filter = m => {
-                    console.log(m)
-                    return true;
-                }
-                const collector = interaction.channel.createMessageCollector({filter, time: 30000})
-
-                collector.on('collect', m => {
-                    console.log("Collected data: ",m);
-                })
-
-                collector.on('end', m => {
-                    console.log('collector ended: ',m);
-                })
-            }
+            collector.on('collect', async msg => {
+                test(await msg);
+                
+            })
+            collector.on('end', (collected, reason) => {
+                console.log(collected)
+                console.log(reason)
+            })
+        }
 }
