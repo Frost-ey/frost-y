@@ -48,9 +48,9 @@ module.exports = async msg => {
         }
         const normalityRate = predictions.Neutral + predictions.Drawing;
         if(normalityRate < 60)
-            return true;
+            return {imgUrl: url, isExplicit: true}
         else
-            return false;
+            return {imgUrl: url, isExplicit: false}
 
     } catch (error) {
         msg.reply("Countered a internal error while executing that command. The error was either originated from the bot itself or from the Discord API. If the problem persists try contacting `Flame#5340` ")

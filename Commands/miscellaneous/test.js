@@ -10,7 +10,12 @@ module.exports = {
             const collector = interaction.channel.createMessageCollector();
 
             collector.on('collect', async msg => {
-                test(await msg);
+                const emoName = msg.content;
+                if(interaction.user.id !== msg.author.id) return;
+
+                const emo = msg.guild.emojis.cache.find( emoji => emoji.name == msg.content );
+                // console.log(emo)
+                msg.channel.send(`Emoji id: \`${emo.id}\` `)
                 
             })
             collector.on('end', (collected, reason) => {
