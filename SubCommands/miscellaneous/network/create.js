@@ -42,6 +42,7 @@ module.exports = {
                     collector.stop("processedLimit");
                     return;
                 }
+                creationData.id = makeID(interaction.user.id)
                 creationData.info = {
                     mainGuildID : msg.guild.id,
                     creatorID : msg.author.id,
@@ -90,7 +91,7 @@ module.exports = {
                 interaction.followUp({embeds: embed(success) })
                 return;
             }
-            if(reason === "processedLimit")
+            else if(reason === "processedLimit")
                 interaction.followUp({embed: embed({desc: "Too many incorrect attempts. Try again and be sure to follow the instruction.", color: 'RED'}) });
             else if(reason === "time")
                 interaction.followUp({embed: embed({desc: "Time out. The interaction took too much time. Please try again", color: 'RED'}) });
@@ -99,6 +100,31 @@ module.exports = {
                 console.log(reason);
             }
         })
+
+        function makeID(Userid){
+            String.prototype.shuffle = function () {
+                var a = this.split(""),
+                    n = a.length;
+            
+                for(var i = n - 1; i > 0; i--) {
+                    var j = Math.floor(Math.random() * (i + 1));
+                    var tmp = a[i];
+                    a[i] = a[j];
+                    a[j] = tmp;
+                }
+                return a.join("");
+            }
+        
+            var ID = Userid.slice(16);
+            ID += Date.now().toString().slice(12)
+            var codes = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        
+            for(var i =0; i < 2; i++){
+                ID += codes.charAt(Math.floor(Math.random() * codes.length))
+            }
+            const newID = ID.shuffle();
+            return newID;
+        }
 
         function check(msg, minLength, maxLength) {
             if(received >= 6 ){

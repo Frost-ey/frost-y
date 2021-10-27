@@ -9,6 +9,10 @@ module.exports = {
                 cmd.setName("create")
                 .setDescription("Create's a new server network.")
                 return cmd;
+            })
+            .addSubcommand( cmd => {
+                cmd.setName('view')
+                .setDescription('Check/manage the current server network that you are in')
             }),
             async execute(interaction) {
                 
